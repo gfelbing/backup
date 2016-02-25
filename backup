@@ -1,0 +1,44 @@
+#!/bin/bash
+# Copyright 2016 Georg Felbinger
+#
+# This file is part of the github project gfelbing/backup.
+# 
+# gfelbing/backup is free software:
+# you can redistribute it and/or modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation, either version 3 of the License,
+# or (at your option) any later version.
+# 
+# gfelbing/backup is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along with gfelbing/backup.
+# If not, see http://www.gnu.org/licenses/.
+
+set -e
+set -x
+
+BASEDIR=$(realpath $(dirname $0))
+CONFDIR=~/.config/backup
+
+echo "Loading config variables from $BASEDIR/config"
+. $CONFDIR/config
+
+echo "Opening encrypted filesystem."
+echo -e `gpg2 -r $GPGUID -d ~/.config/backup/pass 2> /dev/null` | sudo cryptsetup luksOpen /dev/$VGNAME/$LVNAME $LUKSNAME
+
+MOUNTPOINT=`mktemp -d`
+echo "Mounting $LUKSNAME to $MOUNTPOINT"
+sudo mount -t btrfs /dev/mapper/$LUKSNAME $MOUNTPOINT
+
+echo "Backing up the system..."
+sudo rsync -aAXv --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","lost+found"} / $MOUNTPOINT/$BACKUPNAME
+
+echo "Creating snapshot"
+sudo btrfs subvolume snapshot $MOUNTPOINT/$BACKUPNAME $MOUNTPOINT/$BACKUPNAME-`date +%Y-%m-%d-%H-%M`
+
+echo "Unmounting $MOUNTPOINT"
+sudo umount $MOUNTPOINT
+
+echo "Closing encrypted filesystem"
+sudo cryptsetup luksClose $LUKSNAME
