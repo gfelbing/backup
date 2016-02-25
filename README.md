@@ -28,6 +28,8 @@ The script backup-prepare can be used to setup your backup device.
 
 It nees root privileges in order to prepare your backup device. It uses sudo when it needs it, so you **don't** it as root!
 
+It will do:
+
 1. Format your backup-device with a full-sized lvm-pv
 2. Setup a volume group and logical volume using the whole lvm-pv above
 3. Generate a 50 character password using all `pwgen -cnys1 50`
@@ -43,3 +45,10 @@ It nees root privileges in order to prepare your backup device. It uses sudo whe
 ```
 
 As above, it requires root privileges for mounting and copying your system files. It gets it using sudo so **don't** run it as root!
+
+It will do:
+
+1. Mount the encrypted backup device
+2. Update the backup with rsync
+3. Create a snapshot with btrfs
+4. Unmount your backup device
