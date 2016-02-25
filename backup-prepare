@@ -43,7 +43,7 @@ echo "Creating a passphrase and save it gpg-encrypted for $GPGUID"
 pwgen -cnys1 50 | gpg2 -r $GPGUID -e > $CONFDIR/pass
 
 echo "Creating $LUKSNAME mapping, you will have to enter the provided passphrase"
-echo "-e `gpg2 -r $GPGUID -d ~/.config/backup/pass 2> /dev/null` | cryptsetup luksOpen /dev/$VGNAME/$LVNAME $LUKSNAME"
+echo -e `gpg2 -r $GPGUID -d ~/.config/backup/pass 2> /dev/null` | cryptsetup luksOpen /dev/$VGNAME/$LVNAME $LUKSNAME
 
 echo "Creating btrfs into encrypted volume"
 mkfs.btrfs -L $VOLUMENAME $LUKSNAME
