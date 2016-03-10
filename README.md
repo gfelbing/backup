@@ -57,12 +57,12 @@ It will do:
 
 The `backup` script is divided into several tasks:
 
-|Task|Description|
-|--|--|
-|mount|Mounts the encrypted backup volume to the configured MOUNTPOINT|
-|umount|Unmounts the encrypted backup volume|
-|run|Executes mount, updates the backup and creates a snapshot, executes umount|
-|prepare|Prepares the backup volume, see [2. Setup your backup device]|
+Task | Description
+---- | -----------
+mount | Mounts the encrypted backup volume to the configured MOUNTPOINT
+umount | Unmounts the encrypted backup volume
+run | Executes mount, updates the backup and creates a snapshot, executes umount
+prepare | Prepares the backup volume, see [2. Setup your backup device]
 
 The tasks can be used by running:
 
