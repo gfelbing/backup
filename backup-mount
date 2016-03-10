@@ -1,7 +1,7 @@
-#!/bin/bash
 # Copyright 2016 Georg Felbinger
 #
 # This file is part of the github project gfelbing/backup.
+# It should not be executed itself, use `backup mount`!
 # 
 # gfelbing/backup is free software:
 # you can redistribute it and/or modify it under the terms of the GNU General Public License
@@ -15,23 +15,10 @@
 # You should have received a copy of the GNU General Public License along with gfelbing/backup.
 # If not, see http://www.gnu.org/licenses/.
 
-set -e
+echo "Create mountpoint '$MOUNTPOINT' if not exists"
+sudo mkdir -p $MOUNTPOINT
+echo "Opening encrypted filesystem."
+echo -e `gpg2 -r $GPGUID -d ~/.config/backup/pass 2> /dev/null` | sudo cryptsetup luksOpen /dev/$VGNAME/$LVNAME $LUKSNAME
 
-BASEDIR=$(realpath $(dirname $0))
-CONFDIR=~/.config/backup
-
-echo "Loading config variables from $BASEDIR/config"
-. $CONFDIR/config
-
-case "$1" in
-mount)  . backup-mount
-    ;;
-run) . backup-run
-    ;;
-prepare) . backup-prepare
-    ;;
-umount) . backup-umount;
-    ;;
-*) echo "Unknown task: '$1'"
-   ;;
-esac
+echo "Mounting $LUKSNAME to $MOUNTPOINT"
+sudo mount -t btrfs /dev/mapper/$LUKSNAME $MOUNTPOINT
