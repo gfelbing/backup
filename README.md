@@ -34,7 +34,7 @@ It will do:
 2. Setup a volume group and logical volume using the whole lvm-pv above
 3. Generate a 50 character password using all `pwgen -cnys1 50`
 4. Stores the password above into a gpg encrypted file
-    - **Note**: Since won't provide your password yourself neither see the generated without your gpg private key! Make sure your it is backuped by another procedure or this backup will be unusable on data loss!
+    - **Note**: Since you won't provide the encryption passphrase yourself neither see the generated one without your gpg private key, make sure it is backuped by another procedure or this backup will be unusable when your private key is lost!
 5. Uses the password above to encrypt the logical volume
 6. Formats the encrypted volume with btrfs and creates a subvolume for the backup
 
