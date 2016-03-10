@@ -20,7 +20,7 @@ set -e
 BASEDIR=$(realpath $(dirname $0))
 CONFDIR=~/.config/backup
 
-echo "Loading config variables from $BASEDIR/config"
+echo "Loading config variables from $CONFDIR/config"
 . $CONFDIR/config
 
 case "$1" in
