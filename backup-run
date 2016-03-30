@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License along with gfelbing/backup.
 # If not, see http://www.gnu.org/licenses/.
 
-. backup-mount
+. "$BASEDIR/backup-mount"
 
 echo "Backing up the system..."
 sudo rsync -aAXv --exclude={"/dev","/proc","/sys","/tmp","/run","/mnt","/media","lost+found"} / $MOUNTPOINT/$BACKUPNAME

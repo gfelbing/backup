@@ -17,20 +17,20 @@
 
 set -e
 
-BASEDIR=$(realpath $(dirname $0))
+BASEDIR=`cd $(dirname $0); pwd -P`
 CONFDIR=~/.config/backup
 
 echo "Loading config variables from $CONFDIR/config"
 . $CONFDIR/config
 
 case "$1" in
-mount)  . backup-mount
+mount)  . $BASEDIR/backup-mount
     ;;
-run) . backup-run
+run) . $BASEDIR/backup-run
     ;;
-prepare) . backup-prepare
+prepare) . $BASEDIR/backup-prepare
     ;;
-umount) . backup-umount;
+umount) . $BASEDIR/backup-umount;
     ;;
 *) echo "Unknown task: '$1'"
    ;;
