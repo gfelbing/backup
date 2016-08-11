@@ -15,12 +15,12 @@
 # You should have received a copy of the GNU General Public License along with gfelbing/backup.
 # If not, see http://www.gnu.org/licenses/.
 
-. "$BASEDIR/backup-mount"
+source "$SOURCEDIR/backup-mount"
 
 echo "Backing up the system..."
-sudo rsync -aAXv --exclude={"/dev","/proc","/sys","/tmp","/run","/mnt","/media","lost+found"} / $MOUNTPOINT/$BACKUPNAME
+sudo rsync -aAXv --exclude={"$HOME/.cache","/var/lib/docker","/dev","/proc","/sys","/tmp","/run","/mnt","/media","lost+found"} / "$MOUNTPOINT/$BACKUPNAME"
 
 echo "Creating snapshot"
-sudo btrfs subvolume snapshot $MOUNTPOINT/$BACKUPNAME $MOUNTPOINT/$BACKUPNAME-`date +%Y-%m-%d-%H-%M`
+sudo btrfs subvolume snapshot "$MOUNTPOINT/$BACKUPNAME" "$MOUNTPOINT/$BACKUPNAME-$(date +%Y-%m-%d-%H-%M)"
 
-. backup-umount
+source "$SOURCEDIR/backup-umount"

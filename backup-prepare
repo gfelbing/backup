@@ -15,42 +15,55 @@
 # You should have received a copy of the GNU General Public License along with gfelbing/backup.
 # If not, see http://www.gnu.org/licenses/.
 
+DEVICE=$1
+VGNAME=vg-backup
+LVNAME=lv-backup
+LVCONFIG=lv-config
+LUKSNAME=luks-backup
+BACKUPNAME=$(hostname)
+
 echo "Creating the physical lvm volume on $DEVICE"
-pvcreate $DEVICE
+sudo pvcreate "$DEVICE"
 
 echo "Creating the lvm volume group $VGNAME on $DEVICE"
-vgcreate $VGNAME $DEVICE
+sudo vgcreate "$VGNAME" "$DEVICE"
 
 echo "Creating the lvm logical volume $LVNAME on $VGNAME"
-lvcreate -l 100%VG -n $LVNAME $VGNAME
+sudo lvcreate -L 16M -n "$LVCONFIG" "$VGNAME"
+sudo lvcreate -l 100%FREE -n "$LVNAME" "$VGNAME"
 
 echo "Write random data to $LVNAME for better encryption. This can take some time."
-badblocks -c 10240 -s -w -t random -v $LVNAME
+sudo badblocks -c 10240 -s -w -t random -v "/dev/$VGNAME/$LVNAME"
 
-echo "Setting up encryption, you will have to provide a passphrase"
-cryptsetup luksFormat $LVNAME
+echo "Creating config and a passphrase and save it gpg-encrypted"
+sudo mkfs.ext4 /dev/$VGNAME/$LVCONFIG
+MOUNTCONFIG=$(mktemp -d)
+sudo mount "/dev/$VGNAME/$LVCONFIG" "$MOUNTCONFIG"
+sudo touch "$MOUNTCONFIG/config" "$MOUNTCONFIG/pass"
+sudo chown "$UID:$UID" "$MOUNTCONFIG/config" "$MOUNTCONFIG/pass"
+read -rp "For which gpg2 USER-ID should the passphrase (generated in next step) be encrypted? " GPGUID
+echo "GPGUID=\"$GPGUID\"" > "$MOUNTCONFIG/config"
+echo "BACKUPNAME=\"$BACKUPNAME\"" >> "$MOUNTCONFIG/config"
+pwgen -cnys1 50 | gpg2 -r "$GPGUID" -e > "$MOUNTCONFIG/pass"
 
-echo "Creating a passphrase and save it gpg-encrypted for $GPGUID"
-pwgen -cnys1 50 | gpg2 -r $GPGUID -e > $CONFDIR/pass
+echo "Creating $LUKSNAME mapping"
+echo -e "$(gpg2 -r "$GPGUID" -d "$MOUNTCONFIG/pass" 2> /dev/null)" | sudo cryptsetup luksFormat "/dev/$VGNAME/$LVNAME"
+echo -e "$(gpg2 -r "$GPGUID" -d "$MOUNTCONFIG/pass" 2> /dev/null)" | sudo cryptsetup luksOpen "/dev/$VGNAME/$LVNAME $LUKSNAME"
 
-echo "Creating $LUKSNAME mapping, you will have to enter the provided passphrase"
-echo -e `gpg2 -r $GPGUID -d ~/.config/backup/pass 2> /dev/null` | cryptsetup luksOpen /dev/$VGNAME/$LVNAME $LUKSNAME
+echo "Create and mount btrfs into encrypted volume"
+sudo mkfs.btrfs "/dev/mapper/$LUKSNAME"
+MOUNTBACKUP=$(mktemp -d)
+sudo mount -t btrfs "/dev/mapper/$LUKSNAME" "$MOUNTBACKUP"
 
-echo "Creating btrfs into encrypted volume"
-mkfs.btrfs -L $VOLUMENAME $LUKSNAME
+echo "Creating btrfs subvolume $MOUNTBACKUP/$BACKUPNAME"
+sudo btrfs subvolume create "$MOUNTBACKUP/$BACKUPNAME"
 
-echo "Creating mountpoint '$MOUNTPOINT' if not exists"
-mkdir -p $MOUNTPOINT
-echo "Mounting $LUKSNAME to $MOUNTPOINT"
-mount -t btrfs /dev/mapper/$LUKSNAME $MOUNTPOINT
-
-echo "Creating btrfs subvolume $MOUNTPOINT/$BACKUPNAME"
-btrfs subvolume create $MOUNTPOINT/$BACKUPNAME
-
-echo "Unmounting $MOUNTPOINT"
-umount $MOUNTPOINT
+echo "Unmounting..."
+sudo umount "$MOUNTCONFIG"
+sudo umount "$MOUNTBACKUP"
 
 echo "Closing encrypted filesystem"
-cryptsetup luksClose $LUKSNAME
+sudo cryptsetup luksClose "$LUKSNAME"
 
 echo "Setup done. You should backup now."
+

@@ -15,10 +15,17 @@
 # You should have received a copy of the GNU General Public License along with gfelbing/backup.
 # If not, see http://www.gnu.org/licenses/.
 
-echo "Create mountpoint '$MOUNTPOINT' if not exists"
-sudo mkdir -p $MOUNTPOINT
-echo "Opening encrypted filesystem."
-echo -e `gpg2 -r $GPGUID -d ~/.config/backup/pass 2> /dev/null` | sudo cryptsetup luksOpen /dev/$VGNAME/$LVNAME $LUKSNAME
+VGNAME=vg-backup
+LVNAME=lv-backup
+LVCONFIG=lv-config
+LUKSNAME=luks-backup
+MOUNTBACKUP=/mnt/backup
 
-echo "Mounting $LUKSNAME to $MOUNTPOINT"
-sudo mount -t btrfs /dev/mapper/$LUKSNAME $MOUNTPOINT
+MOUNTCONFIG=$(mktemp -d)
+sudo mount "/dev/$VGNAME/$LVCONFIG" "$MOUNTCONFIG"
+source "$MOUNTCONFIG/config"
+sudo mkdir -p "$MOUNTBACKUP"
+echo -e "$(gpg2 -r "$GPGUID" -d "$MOUNTCONFIG/pass" 2> /dev/null)" | sudo cryptsetup luksOpen "/dev/$VGNAME/$LVNAME" "$LUKSNAME"
+sudo umount "$MOUNTCONFIG"
+sudo mount -t btrfs "/dev/mapper/$LUKSNAME" "$MOUNTBACKUP"
+

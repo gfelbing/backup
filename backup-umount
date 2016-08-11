@@ -15,8 +15,10 @@
 # You should have received a copy of the GNU General Public License along with gfelbing/backup.
 # If not, see http://www.gnu.org/licenses/.
 
-echo "Unmounting $MOUNTPOINT"
-sudo umount $MOUNTPOINT
+LUKSNAME=luks-backup
+MOUNTBACKUP=/mnt/backup
+
+sudo umount "$MOUNTBACKUP"
 
 echo "Closing encrypted filesystem"
-sudo cryptsetup luksClose $LUKSNAME
+sudo cryptsetup luksClose "$LUKSNAME"
