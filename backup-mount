@@ -15,19 +15,16 @@
 # You should have received a copy of the GNU General Public License along with gfelbing/backup.
 # If not, see http://www.gnu.org/licenses/.
 
+set -x
+
 VGNAME=vg-backup
 LVNAME=lv-backup
 LVCONFIG=lv-config
 LUKSNAME=luks-backup
 MOUNTBACKUP=/mnt/backup
 
-MOUNTCONFIG=$(mktemp -d)
-echo "Mounting config /dev/$VGNAME/$LVCONFIG to $MOUNTCONFIG"
-sudo mount "/dev/$VGNAME/$LVCONFIG" "$MOUNTCONFIG"
-source "$MOUNTCONFIG/config"
 sudo mkdir -p "$MOUNTBACKUP"
-echo -e "$(gpg2 -r "$GPGUID" -d "$MOUNTCONFIG/pass" 2> /dev/null)" | sudo cryptsetup luksOpen "/dev/$VGNAME/$LVNAME" "$LUKSNAME"
-sudo umount "$MOUNTCONFIG"
+sudo cryptsetup luksOpen "/dev/$VGNAME/$LVNAME" "$LUKSNAME"
 echo "Open encrypted filesystem /dev/mapper/$LUKSNAME to $MOUNTBACKUP"
 sudo mount -t btrfs "/dev/mapper/$LUKSNAME" "$MOUNTBACKUP"
 

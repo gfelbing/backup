@@ -7,18 +7,7 @@ Scripts to make secure incremental backups of a linux system, using
 
 ## Setup
 
-### 1. Configuration
-
-Copy the file config into your home:
-
-```
-mkdir ~/.config/backup
-cp config ~/.config/backup
-```
-
-and provide the right values.
-
-### 2. Setup your backup device
+### 1. Setup your backup device
 
 The script backup-prepare can be used to setup your backup device.
 
@@ -32,11 +21,9 @@ It will do:
 
 1. Format your backup-device with a full-sized lvm-pv
 2. Setup a volume group and logical volume using the whole lvm-pv above
-3. Generate a 50 character password using all `pwgen -cnys1 50`
-4. Stores the password above into a gpg encrypted file
-    - **Note**: Since you won't provide the encryption passphrase yourself neither see the generated one without your gpg private key, make sure it is backuped by another procedure or this backup will be unusable when your private key is lost!
-5. Uses the password above to encrypt the logical volume
-6. Formats the encrypted volume with btrfs and creates a subvolume for the backup
+3. Encrypts the logical volume with a password
+    - **NOTE**: Take care of that password. Without it, you will not be able to access your backup anymore.
+4. Formats the encrypted volume with btrfs and creates a subvolume for the backup
 
 ### 3. Execute your first backup!
 
