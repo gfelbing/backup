@@ -18,7 +18,7 @@
 source "$SOURCEDIR/backup-mount"
 
 echo "Backing up the system..."
-sudo rsync -aAX --exclude={"$HOME/.cache","$HOME/.local/share/Steam","/var/lib/docker","/dev","/proc","/sys","/tmp","/run","/mnt","/media","lost+found"} / "$MOUNTBACKUP/$BACKUPNAME"
+sudo rsync -aAX --delete --exclude={"$HOME/.cache","$HOME/.local/share/Steam","/var/lib/docker","/dev","/proc","/sys","/tmp","/run","/mnt","/media","lost+found"} / "$MOUNTBACKUP/$BACKUPNAME"
 
 echo "Creating snapshot"
 sudo btrfs subvolume snapshot "$MOUNTBACKUP/$BACKUPNAME" "$MOUNTBACKUP/$BACKUPNAME-$(date +%Y-%m-%d-%H-%M)"
